@@ -7,6 +7,7 @@ use yii\db\ActiveRecord;
 /**
  * This is the model class for table "Apple".
  *
+ * @property int $id ID
  * @property string $color Цвет
  * @property int $created_at Добавлено
  * @property int $fall_at Когда упал
@@ -26,17 +27,52 @@ class Apple extends ActiveRecord
         self::STATE_ROTTEN => 'Гнилое'
     ];
 
+    const COLORS = [
+        'IndianRed',
+        'LightCoral',
+        'Salmon',
+        'DarkSalmon',
+        'LightSalmon',
+        'Crimson',
+        'FireBrick',
+        'DarkRed',
+        'LightSalmon',
+        'Coral',
+        'Tomato',
+        'OrangeRed',
+        'DarkOrange',
+        'Orange',
+        'Gold',
+        'Yellow',
+        'LightYellow',
+        'LemonChiffon',
+        'LightGoldenrodYellow',
+        'PapayaWhip',
+        'Moccasin',
+        'PeachPuff',
+        'PaleGoldenrod',
+        'Khaki'
+    ];
+    /**
+     * Время жизни
+     */
+    const LIVE_TIME = 5 * 60 * 60 * 1000;
+
     /**
      * Apple constructor.
      * @param mixed $config
      */
-    public function __construct($config)
+    public function __construct($config = [])
     {
         if (!is_array($config)){
             $config = ['color' => $config];
         }
+        if (!isset($config['color'])){
+            $config['color'] = self::COLORS[rand(0, count(self::COLORS) - 1)];
+        }
         $config['state'] = self::STATE_HANG;
         $config['integrity'] = 100;
+        $config['created_at'] = (new \DateTime())->getTimestamp();
         parent::__construct($config);
     }
 
@@ -47,8 +83,7 @@ class Apple extends ActiveRecord
     {
         return [
             [['color', 'state'], 'required'],
-            [['state', 'integrity'], 'integer'],
-            [['created_at', 'fall_at'], 'date', 'format' => 'php:d.m.Y']
+            [['state', 'integrity'], 'integer']
         ];
     }
 
@@ -61,8 +96,10 @@ class Apple extends ActiveRecord
             'id' => 'ID',
             'color' => 'Цвет',
             'created_at' => 'Добавлено',
+            'dateCreateFormatted' => 'Появилось',
             'fall_at' => 'Когда упало',
             'state' => 'Состояние',
+            'stateName' => 'Состояние',
             'integrity' => 'Целостность'
         ];
     }
@@ -82,10 +119,54 @@ class Apple extends ActiveRecord
         ];
     }
 
+    /**
+     * Время жизни яблока
+     * @return int
+     */
     public function getLiveTime(){
         return $this->created_at - (new \DateTime())->getTimestamp();
     }
 
+    /**
+     * Обновить и вернуть состояние
+     * @return int
+     */
+    public function getState(){
+        if ($this->state === self::STATE_FALL && $this->getLiveTime() >= self::LIVE_TIME){
+            $this->state = self::STATE_ROTTEN;
+        }
+        return $this->state;
+    }
+
+    /**
+     * Получить текстовое значение состояния
+     * @param $state
+     * @return mixed
+     */
+    public function getStateName(){
+        return self::STATES[$this->state];
+    }
+
+    /**
+     * Установить состояние
+     * @param $state
+     */
+    public function setState($state){
+        $this->state = $state;
+    }
+
+    /**
+     * Получить отформатированное значение даты появления
+     * @return string
+     */
+    public function getDateCreateFormatted(){
+        return (new \DateTime())->setTimestamp($this->created_at)->format("H:i:s");
+    }
+
+    /**
+     * Действие "уронить на землю" и "сгнить, если на земле"
+     * @return bool
+     */
     public function fallToGround(){
         if ($this->getLiveTime() > 5){
             $this->state = self::STATE_FALL;
@@ -95,25 +176,31 @@ class Apple extends ActiveRecord
     }
 
     /**
-     * @param $pct
-     * @return $this
+     * Действие "съесть яблоко"
+     * @param int $pct
+     * @return float
      * @throws InvalidMethodException
      */
-    public function eat($pct){
+    public function eat(int $pct = 25){
         if ($this->integrity - $pct < 0){
             throw new InvalidMethodException("Нельзя столько съесть");
         }
-        if ($this->state === self::STATE_ROTTEN){
+        $state = $this->getState();
+        if ($state === self::STATE_ROTTEN){
             throw new InvalidMethodException("Съесть нельзя, яблоко гнилое");
         }
-        if ($this->state !== self::STATE_FALL){
+        if ($state !== self::STATE_FALL){
             throw new InvalidMethodException("Съесть нельзя, яблоко на дереве");
         }
         $this->integrity -=$pct;
-        return $this;
+        return $this->getSize();
     }
 
+    /**
+     * Текущий размер яблока
+     * @return float
+     */
     public function getSize(){
-        return $this->integrity/100;
+        return (float) $this->integrity/100;
     }
 }
