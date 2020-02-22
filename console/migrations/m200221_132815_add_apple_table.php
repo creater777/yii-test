@@ -20,8 +20,8 @@ class m200221_132815_add_apple_table extends Migration
         $this->createTable('{{%apple}}', [
             'id' => $this->primaryKey(),
             'created_at' => $this->integer()->notNull(),
-            'fall_at' => $this->integer()->notNull(),
-            'status' => $this->smallInteger()->notNull()->defaultValue(0),
+            'fall_at' => $this->integer()->notNull()->defaultValue(0),
+            'state' => $this->smallInteger()->notNull()->defaultValue(0),
             'color' => $this->string(32)->notNull(),
             'integrity' => $this->smallInteger()->notNull()->defaultValue(100),
         ], $tableOptions);
