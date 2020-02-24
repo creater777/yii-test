@@ -18,12 +18,12 @@ $this->title = 'My Yii Application';
                 'dataProvider' => $dataProvider,
                 'columns' => [
                     'dateCreateFormatted',
-                    'fall_at',
+                    'dateFallFormatted',
                     'stateName',
                     'integrity',
                     [
                         'class' => 'yii\grid\ActionColumn',
-                        'template' => '{fall} {eat}',
+                        'template' => '{fall} {eat} {delete}',
                         'urlCreator' => function ($action, $model, $key, $index, $thiz){
                             return Url::toRoute("site/$action?id={$model->id}");
                         },

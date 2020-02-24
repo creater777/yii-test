@@ -3,6 +3,8 @@ namespace frontend\models;
 
 use frontend\exceptions\InvalidMethodException;
 use yii\db\ActiveRecord;
+use yii\db\Expression;
+use yii\db\StaleObjectException;
 
 /**
  * This is the model class for table "Apple".
@@ -56,7 +58,7 @@ class Apple extends ActiveRecord
     /**
      * Время жизни
      */
-    const LIVE_TIME = 5 * 60 * 60 * 1000;
+    const LIVE_TIME = 5 * 60 * 1000;
 
     /**
      * Apple constructor.
@@ -98,24 +100,10 @@ class Apple extends ActiveRecord
             'created_at' => 'Добавлено',
             'dateCreateFormatted' => 'Появилось',
             'fall_at' => 'Когда упало',
+            'dateFallFormatted' => 'Упало',
             'state' => 'Состояние',
             'stateName' => 'Состояние',
             'integrity' => 'Целостность'
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'timestamp' => [
-                'class' => 'yii\behaviors\TimestampBehavior',
-                'attributes' => [
-                    ActiveRecord::EVENT_BEFORE_INSERT => ['created_at'],
-                ],
-            ],
         ];
     }
 
@@ -164,15 +152,23 @@ class Apple extends ActiveRecord
     }
 
     /**
+     * Получить отформатированное значение даты падения
+     * @return string
+     */
+    public function getDateFallFormatted(){
+        return (new \DateTime())->setTimestamp($this->fall_at)->format("H:i:s");
+    }
+    /**
      * Действие "уронить на землю" и "сгнить, если на земле"
      * @return bool
      */
     public function fallToGround(){
-        if ($this->getLiveTime() > 5){
-            $this->state = self::STATE_FALL;
-            return true;
+        if ($this->state === self::STATE_FALL){
+            return false;
         }
-        return false;
+        $this->state = self::STATE_FALL;
+        $this->fall_at = (new \DateTime())->getTimestamp();
+        return true;
     }
 
     /**
@@ -181,10 +177,7 @@ class Apple extends ActiveRecord
      * @return float
      * @throws InvalidMethodException
      */
-    public function eat(int $pct = 25){
-        if ($this->integrity - $pct < 0){
-            throw new InvalidMethodException("Нельзя столько съесть");
-        }
+    public function eat($pct = 25){
         $state = $this->getState();
         if ($state === self::STATE_ROTTEN){
             throw new InvalidMethodException("Съесть нельзя, яблоко гнилое");
@@ -193,7 +186,30 @@ class Apple extends ActiveRecord
             throw new InvalidMethodException("Съесть нельзя, яблоко на дереве");
         }
         $this->integrity -=$pct;
-        return $this->getSize();
+        if ($this->integrity <= 0){
+            return $this->remove();
+        }
+        return true;
+    }
+
+    /**
+     * Удаление
+     * @param $id
+     * @return false|int
+     * @throws InvalidMethodException
+     */
+    public function remove(){
+        if ($this->getState() === self::STATE_ROTTEN || $this->integrity <= 0){
+            try {
+                return !$this->delete();
+            } catch (StaleObjectException $e) {
+                throw new InvalidMethodException($e->getMessage());
+            } catch (\Throwable $e) {
+                throw new InvalidMethodException($e->getMessage());
+            }
+        } else {
+            throw new InvalidMethodException("Нельзя убрать. Яблоко не гнилое.");
+        }
     }
 
     /**

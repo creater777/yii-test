@@ -10,6 +10,7 @@ use yii\base\InvalidArgumentException;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
 use yii\db\Exception;
+use yii\db\StaleObjectException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
@@ -127,6 +128,16 @@ class SiteController extends Controller
         $apple = Apple::findOne(['id'=>$id]);
         try {
             $apple !== null && $apple->eat() && $apple->save();
+        } catch (InvalidMethodException $e) {
+            Yii::$app->session->setFlash('error', $e->getMessage());
+        }
+        return $this->redirect("/");
+    }
+
+    public function actionDelete($id){
+        $apple = Apple::findOne(['id'=>$id]);
+        try {
+            $apple !== null && $apple->remove();
         } catch (InvalidMethodException $e) {
             Yii::$app->session->setFlash('error', $e->getMessage());
         }
