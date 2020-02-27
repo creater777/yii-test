@@ -8,9 +8,7 @@ use frontend\models\VerifyEmailForm;
 use Yii;
 use yii\base\InvalidArgumentException;
 use yii\base\InvalidConfigException;
-use yii\data\ActiveDataProvider;
 use yii\db\Exception;
-use yii\db\StaleObjectException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
@@ -80,11 +78,8 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Apple::find(),
-        ]);
         return $this->render('index', [
-            'dataProvider' => $dataProvider
+            'dataProvider' => Apple::find()->all()
         ]);
     }
 
@@ -96,7 +91,7 @@ class SiteController extends Controller
         Apple::deleteAll();
         $data=[];
         for($i=0; $i < 10; $i++){
-            $data[] = new Apple();
+            $data[] = new Apple(['index' => $i]);
         }
         try {
             Yii::$app->db->createCommand()->batchInsert(Apple::tableName(), Apple::getTableSchema()->columnNames, $data)->execute();

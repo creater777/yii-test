@@ -15,6 +15,7 @@ use yii\db\StaleObjectException;
  * @property int $fall_at Когда упал
  * @property int $state Состояние
  * @property int $integrity Сколько съели в %
+ * @property int $index Индекс в массиве положений
 */
 
 class Apple extends ActiveRecord
@@ -55,6 +56,20 @@ class Apple extends ActiveRecord
         'PaleGoldenrod',
         'Khaki'
     ];
+
+    const POS = [
+        [0, 250],
+        [80, 170],
+        [140, 300],
+        [220, 230],
+        [250, 380],
+        [260, 150],
+        [340, 230],
+        [360, 100],
+        [430, 160],
+        [490, 50]
+    ];
+    const ON_GROUND_POS = 525;
     /**
      * Время жизни
      */
@@ -158,6 +173,18 @@ class Apple extends ActiveRecord
     public function getDateFallFormatted(){
         return (new \DateTime())->setTimestamp($this->fall_at)->format("H:i:s");
     }
+
+    /**
+     * Получить координаты на дереве
+     * @return array
+     */
+    public function getPos(){
+        $index = $this->index % count(self::POS);
+        return $this->state === self::STATE_HANG
+            ? self::POS[$index]
+            : [self::POS[$index][0], self::ON_GROUND_POS];
+    }
+
     /**
      * Действие "уронить на землю" и "сгнить, если на земле"
      * @return bool
