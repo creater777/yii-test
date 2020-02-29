@@ -1,8 +1,9 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\User;
+use common\models\Apple;
 use frontend\exceptions\InvalidMethodException;
-use frontend\models\Apple;
 use frontend\models\ResendVerificationEmailForm;
 use frontend\models\VerifyEmailForm;
 use Yii;
