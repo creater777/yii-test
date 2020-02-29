@@ -1,5 +1,5 @@
 <?php
-namespace frontend\exceptions;
+namespace common\exceptions;
 
 use Throwable;
 

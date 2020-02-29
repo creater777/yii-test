@@ -1,7 +1,7 @@
 <?php
 namespace common\models;
 
-use frontend\exceptions\InvalidMethodException;
+use common\exceptions\InvalidMethodException;
 use yii\db\ActiveRecord;
 use yii\db\StaleObjectException;
 

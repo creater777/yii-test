@@ -10,7 +10,7 @@ $this->title = 'My Yii Application';
 <div class="site-index">
     <div class="body-content">
         <p>
-            <?= Html::a('Генерировать', ['generate'], ['class' => 'btn btn-success']) ?>
+            <?= Html::a('Генерировать', ['apple/generate'], ['class' => 'btn btn-success']) ?>
         </p>
         <div class="row" style="position:relative;">
             <?php Pjax::begin(); ?>
@@ -30,17 +30,17 @@ $this->title = 'My Yii Application';
                         <span class="label">Появилось:&nbsp;<?= $apple->getDateCreateFormatted()?></span>
                         <span class="label">Упало:&nbsp;<?= $apple->getDateFallFormatted()?></span>
                         <?= Html::a('Уронить', [
-                            "site/fall",
+                            "apple/fall",
                             'id' => $apple->id
                         ], ["class" => "label", "style" => "display: block"])
                         ?>
                         <?= Html::a('Съесть', [
-                            "site/eat",
+                            "apple/eat",
                             'id' => $apple->id
                         ], ["class" => "label", "style" => "display: block"])
                         ?>
                         <?= Html::a('Удалить', [
-                            "site/delete",
+                            "apple/delete",
                             'id' => $apple->id
                         ], ["class" => "label", "style" => "display: block"])
                         ?>
